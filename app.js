@@ -120,8 +120,6 @@ app.get('/auth/oauth/twitch/callback',
 app.get('/', (req, res) => {
 	isLogined(req, res, () => {
 		res.send('Logined');
-	}, () => {
-		// deny
 	})
 });
 
@@ -133,12 +131,6 @@ app.get('/user_session', (req, res) => {
 		};
 		console.log(response)
 		res.send(response);
-	}, () => {
-		var response = {
-			sessionValid: false
-		};
-		console.log(response)
-		res.send(response);
 	})
 });
 
@@ -146,40 +138,29 @@ app.get('/customQA', (req, res) => {
 	isLogined(req, res, async () => {
 		console.log('/customQA');
 		try {
-			var customQAs = await db.findCustomQAsWithUID(req.user.uid);
-			if (customQAs == null) {
-				res.send({});
-			} else {
-				res.send({ QAlist: customQAs });
-			}
+			var response = await db.getCustomQAResponseWithUID(req.user.uid);
+			res.send(response);
 		} catch (err) {
 			console.log(err);
 			res.send(err);
 		}
-	}, () => {
-		//not logined
-		res.redirect(origin + '/')
-		return false
 	})
 });
 
 app.post('/customQA', (req, res) => {
 	isLogined(req, res, async () => {
 		try {
-			var result = db.addCustomQAWithUID(req.user.uid, req.body.Question, req.body.Command, req.body.Answer);
-			if (result == null) {
+			var result = await db.addCustomQAWithUID(req.user.uid, req.body.Question, req.body.Command, req.body.Answer);
+			if (result == false) {
 				res.send({}); // already exist
 			} else {
-				res.send(result);
+				var response = await db.getCustomQAResponseWithUID(req.user.uid);
+				res.send(response);
 			}
 		} catch (err) {
 			console.log(err);
 			res.send(err);
 		}
-	}, () => {
-		//not logined
-		res.redirect(origin + '/')
-		return false
 	})
 });
 
@@ -187,40 +168,34 @@ app.post('/customQA', (req, res) => {
 app.put('/customQA/:id', (req, res) => {
 	isLogined(req, res, async () => {
 		try {
-			var result = db.updateCustomQAWithUIDAndID(req.user.uid, req.params.id, req.body.Question, req.body.Command, req.body.Answer);
-			if (result == null) {
+			var result = await db.updateCustomQAWithUIDAndID(req.user.uid, req.params.id, req.body.Question, req.body.Command, req.body.Answer);
+			if (result == false) {
 				res.send({}); // doesn't exist
 			} else {
-				res.send(result);
+				var response = await db.getCustomQAResponseWithUID(req.user.uid);
+				res.send(response);
 			}
 		} catch (err) {
 			console.log(err);
 			res.send(err);
 		}
-	}, () => {
-		//not logined
-		res.redirect(origin + '/')
-		return false
 	})
 });
 
 app.delete('/customQA/:id', (req, res) => {
 	isLogined(req, res, async () => {
 		try {
-			var result = db.deleteCustomQAWithUIDAndID(req.user.uid, req.params.id);
-			if (result == null) {
+			var result = await db.deleteCustomQAWithUIDAndID(req.user.uid, req.params.id);
+			if (result == false) {
 				res.send({}); // doesn't exist
 			} else {
-				res.send(result);
+				var response = await db.getCustomQAResponseWithUID(req.user.uid);
+				res.send(response);
 			}
 		} catch (err) {
 			console.log(err);
 			res.send(err);
 		}
-	}, () => {
-		//not logined
-		res.redirect(origin + '/')
-		return false
 	})
 });
 
