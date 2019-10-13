@@ -123,80 +123,151 @@ app.get('/', (req, res) => {
 	})
 });
 
-app.get('/user_session', (req, res) => {
-	isLogined(req, res, () => {
-		console.log('/user_session');
-		var response = {
-			sessionValid: true
-		};
-		console.log(response)
-		res.send(response);
+app.get('/api/user_session', (req, res) => {
+	console.log("/customQA GET");
+	isLogined(req, res, async () => {
+		res.send({sessionValid: true});
 	})
 });
 
+// CustomQA
+
 app.get('/customQA', (req, res) => {
+	console.log("/customQA GET");
 	isLogined(req, res, async () => {
-		console.log('/customQA');
 		try {
 			var response = await db.getCustomQAResponseWithUID(req.user.uid);
 			res.send(response);
 		} catch (err) {
 			console.log(err);
-			res.send(err);
+			res.status(500).send(err);
 		}
 	})
 });
 
 app.post('/customQA', (req, res) => {
+	console.log("/customQA POST");
 	isLogined(req, res, async () => {
 		try {
 			var result = await db.addCustomQAWithUID(req.user.uid, req.body.Question, req.body.Command, req.body.Answer);
 			if (result == false) {
-				res.send({}); // already exist
+				res.status(409).send("QA already exist");
 			} else {
 				var response = await db.getCustomQAResponseWithUID(req.user.uid);
 				res.send(response);
 			}
 		} catch (err) {
 			console.log(err);
-			res.send(err);
+			res.status(500).send(err);
 		}
 	})
 });
 
-
 app.put('/customQA/:id', (req, res) => {
+	console.log("/customQA PUT");
 	isLogined(req, res, async () => {
 		try {
 			var result = await db.updateCustomQAWithUIDAndID(req.user.uid, req.params.id, req.body.Question, req.body.Command, req.body.Answer);
 			if (result == false) {
-				res.send({}); // doesn't exist
+				res.status(404).send("QA not found");
 			} else {
 				var response = await db.getCustomQAResponseWithUID(req.user.uid);
 				res.send(response);
 			}
 		} catch (err) {
 			console.log(err);
-			res.send(err);
+			res.status(500).send(err);
 		}
 	})
 });
 
 app.delete('/customQA/:id', (req, res) => {
+	console.log("/customQA DELETE");
 	isLogined(req, res, async () => {
 		try {
 			var result = await db.deleteCustomQAWithUIDAndID(req.user.uid, req.params.id);
 			if (result == false) {
-				res.send({}); // doesn't exist
+				res.status(404).send("QA not found");
 			} else {
 				var response = await db.getCustomQAResponseWithUID(req.user.uid);
 				res.send(response);
 			}
 		} catch (err) {
 			console.log(err);
-			res.send(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+// PredefinedQA
+
+app.get('/predefinedQA', (req, res) => {
+	console.log("/predefinedQA GET");
+	isLogined(req, res, async () => {
+		try {
+			var response = await db.getPredefinedQAResponseWithUID(req.user.uid);
+			res.send(response);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.post('/predefinedQA/:qid', (req, res) => {
+	console.log("/predefinedQA POST");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.addPredefinedAWithUIDAndQID(req.user.uid, req.body.qid, req.body.Command, req.body.Answer);
+			if (result == false) {
+				res.status(409).send("QA already exist");
+			} else {
+				var response = await db.getPredefinedQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.put('/predefinedQA/:qid', (req, res) => {
+	console.log("/predefinedQA PUT");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.updatePredefinedQAWithUIDAndQID(req.user.uid, req.params.qid, req.body.Command, req.body.Answer);
+			if (result == false) {
+				res.status(404).send("QA not found");
+			} else {
+				var response = await db.getPredefinedQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.delete('/predefinedQA/:qid', (req, res) => {
+	console.log("/predefinedQA DELETE");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.deletePredefinedQAWithUIDAndID(req.user.uid, req.params.qid);
+			if (result == false) {
+				res.status(404).send("QA not found");
+			} else {
+				var response = await db.getPredefinedQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
 		}
 	})
 });
 
 app.listen(8893);
+
+// Should add active funcionality
