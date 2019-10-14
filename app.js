@@ -11,9 +11,13 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const isLogined = require('./lib/auth');
 const shortid = require('shortid');
-const clientOrigin = 'http://localhost:8080'
+const clientOrigin = 'http://localhost:3000'
 
 db.connect();
+
+/* PUT DB STATIC DATA */
+//db.putStatics();
+/* PUT DB STATIC DATA */
 
 app.all('/*', function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', clientOrigin);
@@ -214,29 +218,11 @@ app.get('/predefinedQA', (req, res) => {
 	})
 });
 
-app.post('/predefinedQA/:qid', (req, res) => {
-	console.log("/predefinedQA POST");
-	isLogined(req, res, async () => {
-		try {
-			var result = await db.addPredefinedAWithUIDAndQID(req.user.uid, req.body.qid, req.body.Command, req.body.Answer);
-			if (result == false) {
-				res.status(409).send("QA already exist");
-			} else {
-				var response = await db.getPredefinedQAResponseWithUID(req.user.uid);
-				res.send(response);
-			}
-		} catch (err) {
-			console.log(err);
-			res.status(500).send(err);
-		}
-	})
-});
-
 app.put('/predefinedQA/:qid', (req, res) => {
 	console.log("/predefinedQA PUT");
 	isLogined(req, res, async () => {
 		try {
-			var result = await db.updatePredefinedQAWithUIDAndQID(req.user.uid, req.params.qid, req.body.Command, req.body.Answer);
+			var result = await db.updatePredefinedQAWithUIDAndQID(req.user.uid, req.params.qid, req.body.answer, req.body.enabled);
 			if (result == false) {
 				res.status(404).send("QA not found");
 			} else {
@@ -254,7 +240,7 @@ app.delete('/predefinedQA/:qid', (req, res) => {
 	console.log("/predefinedQA DELETE");
 	isLogined(req, res, async () => {
 		try {
-			var result = await db.deletePredefinedQAWithUIDAndID(req.user.uid, req.params.qid);
+			var result = await db.deletePredefinedQAWithUIDAndQID(req.user.uid, req.params.qid);
 			if (result == false) {
 				res.status(404).send("QA not found");
 			} else {
