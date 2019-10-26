@@ -15,10 +15,6 @@ const clientOrigin = 'http://localhost:3000'
 
 db.connect();
 
-/* PUT DB STATIC DATA */
-//db.putStatics();
-/* PUT DB STATIC DATA */
-
 app.all('/*', function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', clientOrigin);
 	res.header('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE');
@@ -153,7 +149,7 @@ app.post('/customQA', (req, res) => {
 	console.log("/customQA POST");
 	isLogined(req, res, async () => {
 		try {
-			var result = await db.addCustomQAWithUID(req.user.uid, req.body.Question, req.body.Command, req.body.Answer);
+			var result = await db.addCustomQAWithUID(req.user.uid, req.body.question, req.body.command, req.body.answer, req.body.enabled);
 			if (result == false) {
 				res.status(409).send("QA already exist");
 			} else {
@@ -171,7 +167,7 @@ app.put('/customQA/:id', (req, res) => {
 	console.log("/customQA PUT");
 	isLogined(req, res, async () => {
 		try {
-			var result = await db.updateCustomQAWithUIDAndID(req.user.uid, req.params.id, req.body.Question, req.body.Command, req.body.Answer);
+			var result = await db.updateCustomQAWithUIDAndID(req.user.uid, req.params.id, req.body.question, req.body.command, req.body.answer, req.body.enabled);
 			if (result == false) {
 				res.status(404).send("QA not found");
 			} else {
