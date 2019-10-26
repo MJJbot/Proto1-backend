@@ -250,6 +250,57 @@ app.delete('/predefinedQA/:qid', (req, res) => {
 	})
 });
 
+// AutomaticQA
+
+app.get('/automaticQA', (req, res) => {
+	console.log("/automaticQA GET");
+	isLogined(req, res, async () => {
+		try {
+			var response = await db.getAutomaticQAResponseWithUID(req.user.uid);
+			res.send(response);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.put('/automaticQA/:qid', (req, res) => {
+	console.log("/automaticQA PUT");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.updateAutomaticQAWithUIDAndQID(req.user.uid, req.params.qid, req.body.answer, req.body.enabled);
+			if (result == false) {
+				res.status(404).send("QA not found");
+			} else {
+				var response = await db.getAutomaticQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.delete('/automaticQA/:qid', (req, res) => {
+	console.log("/automaticQA DELETE");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.deleteAutomaticQAWithUIDAndQID(req.user.uid, req.params.qid);
+			if (result == false) {
+				res.status(404).send("QA not found");
+			} else {
+				var response = await db.getAutomaticQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
 app.listen(8893);
 
 // Should add active funcionality
