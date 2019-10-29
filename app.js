@@ -10,7 +10,6 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const isLogined = require('./lib/auth');
-const shortid = require('shortid');
 const clientOrigin = 'http://localhost:3000'
 
 db.connect();
@@ -76,7 +75,9 @@ passport.use(new OAuth2Strategy(OAuth2Credentials, (accessToken, refreshToken, p
 					uid: uid,
 					username: username,
 					accessToken: accessToken,
-					refreshToken: refreshToken
+					refreshToken: refreshToken,
+					botEnabled : false,
+					botEnabledCheck : Date.now()
 				});
 				newUser.save(function(err) {
 					if (err) {
@@ -123,10 +124,33 @@ app.get('/', (req, res) => {
 	})
 });
 
-app.get('/api/user_session', (req, res) => {
-	console.log("/customQA GET");
+app.get('/dashboard', (req, res) => {
+	console.log("/dashboard GET");
 	isLogined(req, res, async () => {
-		res.send({sessionValid: true});
+		try {
+			var response = await db.getDashboardResponseWithUID(req.user.uid);
+			res.send(response);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.put('/botEnabled', (req, res) => {
+	console.log("/botEnabled PUT");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.updateUserBotEnabledWithUID(req.user.uid, req.body.botEnabled);
+			if (result == false) {
+				res.status(404).send("Operation failed");
+			} else {
+				res.send({botEnabled: req.body.botEnabled});
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
 	})
 });
 
