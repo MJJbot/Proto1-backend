@@ -11,6 +11,7 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const isLogined = require('./lib/auth');
 const clientOrigin = 'http://localhost:3000'
+const NLPServerOrigin = 'http://localhost:18888';
 
 db.connect();
 
@@ -121,6 +122,33 @@ app.get('/auth/oauth/twitch/callback',
 app.get('/', (req, res) => {
 	isLogined(req, res, () => {
 		res.send('Logined');
+	})
+});
+
+app.post('/chat', (req, res) => {
+	console.log("/chat POST");
+	isLogined(req, res, async () => {
+		try {
+			console.log('chat: ' + req.body.chat);
+
+			const options = {
+				uri: NLPServerOrigin + '/chat',
+				method: 'POST',
+				body: {
+					uid: 187773904,//req.user.uid,
+					chat: req.body.chat,
+				},
+				json: true
+			};
+			
+			request.post(options, function(err, httpResponse, body) {
+				console.log('Response:' + body);
+				res.send(body);
+			});
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
 	})
 });
 
