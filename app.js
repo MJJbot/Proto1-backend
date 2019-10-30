@@ -146,7 +146,7 @@ app.post('/chat', (req, res) => {
 				uri: NLPServerOrigin + '/chat',
 				method: 'POST',
 				body: {
-					uid: 187773904,//req.user.uid,
+					uid: req.user.uid,
 					chat: req.body.chat,
 				},
 				json: true
@@ -396,7 +396,7 @@ app.put('/recommendQA/:id', (req, res) => {
 	console.log("/recommendQA PUT");
 	isLogined(req, res, async () => {
 		try {
-			if (req.body.use == false) {
+			if (req.body.use == true) {
 				var recommendQA = await db.findRecommendQAWithUIDAndID(req.user.uid, req.params.id);
 				if (recommendQA == null) {
 					res.status(404).send("QA not found");
@@ -446,7 +446,6 @@ app.delete('/recommendQA/:id', (req, res) => {
 app.post('/recommendQA', async (req, res) => {
 	console.log("/recommendQA POST");
 	try {
-		var id = shortid.generate();
 		var newRecommendQA = new model.RecommendQA(res.body);
 		await newRecommendQA.save();
 		res.send(newRecommendQA);
