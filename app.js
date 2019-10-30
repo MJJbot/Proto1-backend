@@ -377,6 +377,21 @@ app.delete('/automaticQA/:qid', (req, res) => {
 	})
 });
 
-app.listen(8893);
+// RecommendQA
+
+app.get('/recommendQA', async (req, res) => {
+	console.log("/recommendQA GET");
+	isLogined(req, res, async () => {
+		try {
+			var response = await db.getRecommendQAResponseWithUID(req.user.uid);
+			res.send(response);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.listen(8894);
 
 // Should add active funcionality
