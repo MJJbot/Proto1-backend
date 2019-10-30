@@ -57,7 +57,7 @@ passport.use(new OAuth2Strategy(OAuth2Credentials, (accessToken, refreshToken, p
 		},
 		json: true
 	}
-	request('https://id.twitch.tv/oauth2/userinfo', options, (err, response, body) => {
+	request('https://id.twitch.tv/oauth2/userinfo', options, (err, response, body1) => {
 		// { aud: 'hloghfav1xgxupcji8vz0ku6o0hyjz',
 		//   exp: 1569330668,
 		//   iat: 1569329768,
@@ -68,30 +68,41 @@ passport.use(new OAuth2Strategy(OAuth2Credentials, (accessToken, refreshToken, p
 		if (err) {
 			done(null, false, {message: err})
 		}
-		var username = body.preferred_username;
-		var uid = body.sub;
-		var user = model.User.findOne({ uid: uid }, function(err, user){
-			if (err || user == null) {
-				var newUser = new model.User({
-					uid: uid,
-					username: username,
-					accessToken: accessToken,
-					refreshToken: refreshToken,
-					botEnabled : false,
-					botEnabledCheck : Date.now()
-				});
-				newUser.save(function(err) {
-					if (err) {
-						console.error(err);
-						done(null, false, {message: err});
-					}
-				});
-				console.log(newUser);
-				done(null, newUser)
-			} else {
-				console.log(user);
-				done(null, user)
+		request('https://api.twitch.tv/helix/users?id=' + body1.sub, options, (err, response, body2) => {
+			if (err) {
+				done(null, false, {message: err})
 			}
+
+			var uid = body1.sub;
+			var user = model.User.findOne({ uid: uid }, function(err, user){
+				if (err || user == null) {
+					var newUser = new model.User({
+						uid: uid,
+						userName: body1.preferred_username,
+						userImg: body2.data[0].profile_image_url,
+						userLogin: body2.data[0].login,
+						accessToken: accessToken,
+						refreshToken: refreshToken,
+						botEnabled : false,
+						botEnabledCheck : Date.now()
+					});
+
+					console.log("newUser");
+					console.log(newUser);
+
+					newUser.save(function(err) {
+						if (err) {
+							console.error(err);
+							done(null, false, {message: err});
+						}
+					});
+					
+					done(null, newUser)
+				} else {
+					console.log(user);
+					done(null, user)
+				}
+			});
 		});
 	})
 }));
