@@ -392,6 +392,68 @@ app.get('/recommendQA', async (req, res) => {
 	})
 });
 
-app.listen(8894);
+app.put('/recommendQA/:id', (req, res) => {
+	console.log("/recommendQA PUT");
+	isLogined(req, res, async () => {
+		try {
+			if (req.body.use == false) {
+				var recommendQA = await db.findRecommendQAWithUIDAndID(req.user.uid, req.params.id);
+				if (recommendQA == null) {
+					res.status(404).send("QA not found");
+				}
 
-// Should add active funcionality
+				var result = await db.addCustomQAWithUID(req.user.uid, recommendQA.questionRep, req.body.command, req.body.answer, true);
+				if (result == false) {
+					res.status(404).send("QA not found");
+				}
+			}
+
+			var result = await db.deleteRecommendQAWithUIDAndID(req.user.uid, req.params.id);
+			
+			if (result == false) {
+				res.status(404).send("QA not found");
+			} else {
+				var response = await db.getRecommendQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+app.delete('/recommendQA/:id', (req, res) => {
+	console.log("/recommendQA DELETE");
+	isLogined(req, res, async () => {
+		try {
+			var result = await db.deleteRecommendQAWithUIDAndID(req.user.uid, req.params.id);
+			if (result == false) {
+				res.status(404).send("QA not found");
+			} else {
+				var response = await db.getRecommendQAResponseWithUID(req.user.uid);
+				res.send(response);
+			}
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
+// DEBUG
+
+app.post('/recommendQA', async (req, res) => {
+	console.log("/recommendQA POST");
+	try {
+		var id = shortid.generate();
+		var newRecommendQA = new model.RecommendQA(res.body);
+		await newRecommendQA.save();
+		res.send(newRecommendQA);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send(err);
+	}
+});
+
+app.listen(8893);
