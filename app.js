@@ -163,6 +163,19 @@ app.post('/chat', (req, res) => {
 	})
 });
 
+app.get('/user', (req, res) => {
+	console.log("/user GET");
+	isLogined(req, res, async () => {
+		try {
+			var response = await db.getUserResponseWithUID(req.user.uid);
+			res.send(response);
+		} catch (err) {
+			console.log(err);
+			res.status(500).send(err);
+		}
+	})
+});
+
 app.get('/dashboard', (req, res) => {
 	console.log("/dashboard GET");
 	isLogined(req, res, async () => {
