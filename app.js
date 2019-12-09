@@ -10,10 +10,15 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const isLogined = require('./lib/auth');
+var zerorpc = require("zerorpc");
 const clientOrigin = 'http://localhost:3000'
-const NLPServerOrigin = 'http://localhost:18888';
+const workerOrigin = 'tcp://localhost:18889'
+const monitorOrigin = 'http://localhost:18888'
 
 db.connect();
+
+const zClient = new zerorpc.Client();
+zClient.connect(workerOrigin);
 
 app.all('/*', function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', clientOrigin);
@@ -141,20 +146,15 @@ app.post('/chat', (req, res) => {
 	isLogined(req, res, async () => {
 		try {
 			console.log('chat: ' + req.body.chat);
-
-			const options = {
-				uri: NLPServerOrigin + '/chat',
-				method: 'POST',
-				body: {
-					uid: req.user.uid,
-					chat: req.body.chat,
-				},
-				json: true
-			};
-			
-			request.post(options, function(err, httpResponse, body) {
-				console.log('Response:' + body);
-				res.send(body);
+			zClient.invoke("get_response", req.user.uid, req.body.chat, (error, chat_response, more) => {
+				if (error){
+					console.log(error)
+				}
+				const response = {
+					reply: chat_response,
+					success: (chat_response != '')
+				};
+				res.send(response);
 			});
 		} catch (err) {
 			console.log(err);
@@ -193,12 +193,28 @@ app.put('/botEnabled', (req, res) => {
 	console.log("/botEnabled PUT");
 	isLogined(req, res, async () => {
 		try {
-			var result = await db.updateUserBotEnabledWithUID(req.user.uid, req.body.botEnabled);
-			if (result == false) {
-				res.status(404).send("Operation failed");
-			} else {
-				res.send({botEnabled: req.body.botEnabled});
-			}
+			const user = await db.findUserWithUID(req.user.uid);
+			const options = {
+				uri: monitorOrigin + '/botEnabled',
+				method: 'PUT',
+				body: {
+					userLogin: user.userLogin,
+					botEnabled: req.body.botEnabled
+				},
+				json: true
+			};
+
+			request(options, async (err, response, body) => {
+				if (err) {
+					res.status(500).send(err);
+				}
+				const result = await db.updateUserBotEnabledWithUID(req.user.uid, body.botEnabled);
+				if (result == false) {
+					res.status(500).send("Operation failed");
+				} else {
+					res.send({botEnabled: response.body.botEnabled});
+				}
+			})
 		} catch (err) {
 			console.log(err);
 			res.status(500).send(err);
