@@ -11,7 +11,8 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const isLogined = require('./lib/auth');
 var zerorpc = require("zerorpc");
-const clientOrigin = 'http://localhost:3000'
+// const clientOrigin = 'http://localhost:3000'
+const clientOrigin = 'http://moozz.s3-website.ap-northeast-2.amazonaws.com'
 const workerOrigin = 'tcp://localhost:18889'
 const monitorOrigin = 'http://localhost:18888'
 
